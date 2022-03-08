@@ -5,17 +5,10 @@
 use std::future::Future;
 use std::pin::Pin;
 
-#[derive(Clone, Copy, Debug, Hash, Ord, PartialOrd, Eq, PartialEq)]
-pub struct Position(pub usize); // TODO: pub?
-
-pub trait ActiveResource: Clone {
-    fn position(&self) -> &Position;
-}
-
-pub struct Circular<Active: ActiveResource, Inactive: Clone> {
+pub struct Circular<Active: Clone, Inactive: Clone> {
     vec: Vec<Inactive>,
-    position: Option<Position>,
-    allocator: Box<dyn Fn(Inactive, Position) -> Pin<Box<dyn Future<Output = Active> + Send + Sync>> + Send + Sync>,
+    position: Option<usize>,
+    allocator: Box<dyn Fn(Inactive) -> Pin<Box<dyn Future<Output = Active> + Send + Sync>> + Send + Sync>,
 }
 
 /// We have a vector of "resources", "allocated" positions therein, and "next" resource to be allocated.
@@ -28,8 +21,8 @@ pub struct Circular<Active: ActiveResource, Inactive: Clone> {
 /// Nodes later than it in the range decrease their positions.
 ///
 /// TODO: Test it.
-impl<Active: ActiveResource, Inactive: Clone> Circular<Active, Inactive> {
-    pub fn new(allocator: Box<dyn Fn(Inactive, Position) -> Pin<Box<dyn Future<Output = Active> + Send + Sync>> + Send + Sync>) -> Self {
+impl<Active: Clone, Inactive: Clone> Circular<Active, Inactive> {
+    pub fn new(allocator: Box<dyn Fn(Inactive) -> Pin<Box<dyn Future<Output = Active> + Send + Sync>> + Send + Sync>) -> Self {
         Self {
             vec: Vec::new(),
             position: None,
@@ -42,15 +35,16 @@ impl<Active: ActiveResource, Inactive: Clone> Circular<Active, Inactive> {
     pub fn append(&mut self, other: &mut Vec<Inactive>) {
         self.vec.append(other)
     }
-    pub fn remove(&mut self) -> Option<Inactive> {
-        if let Some(mut pos) = self.position {
-            let result = self.vec.remove(pos.0);
-            if pos.0 == self.vec.len() {
-                pos.0 = 0;
+    pub fn remove_current(&mut self) -> Option<Inactive> {
+        if let Some(ref mut position) = self.position {
+            let result = self.vec.remove(*position);
+            if *position == self.vec.len() {
+                *position = 0;
             }
             Some(result)
         } else {
-            None
+            self.position = Some(0);
+            self.vec.get(0)
         }
     }
 
@@ -67,10 +61,10 @@ impl<Active: ActiveResource, Inactive: Clone> Circular<Active, Inactive> {
     pub fn inactive_iter_mut(&mut self) -> std::slice::IterMut<Inactive> {
         self.vec.iter_mut()
     }
-    pub fn get_position(&self) -> Option<Position> {
+    pub fn get_position(&self) -> Option<usize> {
         self.position
     }
-    pub fn set_position(&mut self, pos: Option<Position>) {
+    pub fn set_position(&mut self, pos: Option<usize>) {
         self.position = pos;
     }
     pub fn get_current_inactive(&self) -> Option<&Inactive> {
@@ -84,12 +78,27 @@ impl<Active: ActiveResource, Inactive: Clone> Circular<Active, Inactive> {
         self.position = None;
     }
 
-    pub async fn next(&mut self) -> Option<Active> {
-        let new = self.allocate_base().await;
-        let new2 = new.clone();
-        self.position = new.map(|v| *v.position());
-        new2
+    pub fn get_current_active(&self) -> Option<Active> {
+        self.position.map(|pos| self.vec[pos])
     }
+    pub async fn next(&mut self) -> Option<Inactive> {
+        if Some(ref mut pos) = self.position {
+            *pos += 1;
+            if *pos == self.vec.len() {
+                *pos = 0;
+            }
+            self.vec[*pos]
+        } else {
+            if self.vec.is_empty() {
+                self.position = None;
+                None
+            } else {
+                self.position = Some(0);
+                self.vec[0]
+            }
+        }
+    }
+    /// TODO: Should allocate for current, not next node, to be used in `get_current_active`.
     async fn allocate_base(&mut self) -> Option<Active> {
         let len = self.inactive_len();
         if len == 0 {
