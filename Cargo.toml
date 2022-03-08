@@ -2,10 +2,10 @@
 name = "circular-resources"
 version = "0.0.1"
 edition = "2021"
-description = "A `Vec` together with positions that move together with the elements if the `Vec`"
+description = "A `Vec` together with a position that moves circularly"
 authors = ["Victor Porton"]
 license = "Apache-2.0"
-homepage = "https://github.com/vporton/vec-with-positions-rs"
+homepage = "https://github.com/vporton/circular-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

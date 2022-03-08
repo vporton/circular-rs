@@ -7,16 +7,9 @@ pub struct Circular<T: Clone> {
     position: Option<usize>,
 }
 
-/// We have a vector of "resources", "allocated" positions therein, and "next" resource to be allocated.
-/// There is the operation to replace a position in the vector of positions
-/// by the available position.
+/// We have a vector and "position" therein.
 ///
-/// Example: Several threads use a pool of network nodes to download from.
-/// From the pool we "view" a range of currently used nodes, one by thread.
-/// If a note is invalidated, it is removed from the list.
-/// Nodes later than it in the range decrease their positions.
-///
-/// TODO: Test it.
+/// TODO: More tests.
 impl<T: Clone> Circular<T> {
     pub fn new() -> Self {
         Self {
@@ -95,38 +88,16 @@ impl<T: Clone> Circular<T> {
 /// Tests do not pass.
 #[cfg(test)]
 mod tests {
-    use crate::{Position, Circular, VecWithPositions};
-
-    #[test]
-    fn one_position_before() {
-        let mut v = Circular::new();
-        let mut input = (0..10).collect::<Vec<i32>>();
-        v.append(&mut input);
-        v.set_position(Some(Position(3)));
-        v.remove(Position(5));
-        assert_eq!(v.inactive_iter().map(|n| *n).collect::<Vec<i32>>(), vec![0, 1, 2, 3, 4, 6, 7, 8, 9]);
-        assert_eq!(v.get_position(), Some(Position(3)));
-    }
+    use crate::{Circular};
 
     #[test]
     fn one_position_middle() {
         let mut v = Circular::new();
         let mut input = (0..10).collect::<Vec<i32>>();
         v.append(&mut input);
-        v.set_position(Some(Position(5)));
-        v.remove(Position(5));
-        assert_eq!(v.inactive_iter().map(|n| *n).collect::<Vec<i32>>(), vec![0, 1, 2, 3, 4, 6, 7, 8, 9]);
-        assert_eq!(v.get_position(), Some(Position(5)));
-    }
-
-    #[test]
-    fn one_position_after() {
-        let mut v = Circular::new();
-        let mut input = (0..10).collect::<Vec<i32>>();
-        v.append(&mut input);
-        v.set_position(Some(Position(7)));
-        v.remove(Position(5));
-        assert_eq!(v.inactive_iter().map(|n| *n).collect::<Vec<i32>>(), vec![0, 1, 2, 3, 4, 6, 7, 8, 9]);
-        assert_eq!(v.get_position(), Some(Position(6)));
+        v.set_position(Some(5));
+        v.remove_current();
+        assert_eq!(v.iter().map(|n| *n).collect::<Vec<i32>>(), vec![0, 1, 2, 3, 4, 6, 7, 8, 9]);
+        assert_eq!(v.get_position(), Some(5));
     }
 }
