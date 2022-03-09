@@ -13,7 +13,7 @@ pub struct PositionID(pub usize);
 /// We have a vector and "position" therein.
 ///
 /// TODO: More tests.
-impl<T: Clone> Circular<T> {
+impl<T> Circular<T> {
     pub fn push(&mut self, value: T) {
         self.vec.push(value)
     }
