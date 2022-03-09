@@ -42,11 +42,26 @@ impl<T> Circular<T> {
         self.vec.len()
     }
 
+    pub fn positions_is_empty(&self) -> bool {
+        self.positions.is_empty()
+    }
+    pub fn positions_len(&self) -> usize {
+        self.positions.len()
+    }
+
     pub fn iter(&self) -> std::slice::Iter<T> {
         self.vec.iter()
     }
     pub fn iter_mut(&mut self) -> std::slice::IterMut<T> {
         self.vec.iter_mut()
+    }
+    pub fn push_position(&mut self) -> usize {
+        let result = self.positions.len();
+        self.positions.push(None);
+        result
+    }
+    pub fn pop_position(&mut self) {
+        self.positions.pop();
     }
     pub fn get_position(&self, pos_id: PositionID) -> &Option<usize> {
         &self.positions[pos_id.0]
