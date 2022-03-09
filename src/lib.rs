@@ -2,48 +2,35 @@
 //!
 //! TODO: docs
 
-pub struct Circular<T: Clone> {
+pub struct Circular<T> {
     vec: Vec<T>,
-    position: Option<usize>,
+    positions: Vec<Option<usize>>,
 }
+
+#[derive(Clone, Copy)]
+pub struct PositionID(pub usize);
 
 /// We have a vector and "position" therein.
 ///
 /// TODO: More tests.
 impl<T: Clone> Circular<T> {
-    pub fn new() -> Self {
-        Self {
-            vec: Vec::new(),
-            position: None,
-        }
-    }
     pub fn push(&mut self, value: T) {
         self.vec.push(value)
     }
     pub fn append(&mut self, other: &mut Vec<T>) {
         self.vec.append(other)
     }
-    pub fn remove_current(&mut self) -> Option<T> {
-        if let Some(ref mut pos) = self.position {
-            let result = self.vec.remove(pos.clone());
-            if *pos == self.vec.len() {
-                *pos = 0;
-            }
-            Some(result)
-        } else {
-            self.position = Some(0);
-            self.vec.get(0).map(|v| v.clone())
-        }
-    }
     pub fn remove(&mut self, index: usize) -> T {
         let result = self.vec.remove(index);
-        if let Some(ref mut pos) = self.position {
-            if *pos > index {
-                *pos -= 1;
+        let empty = self.is_empty();
+        for position in self.positions.iter_mut() {
+            if empty {
+                *position = None;
+            } else if let Some(ref mut pos) = *position {
+                if *pos > index {
+                    *pos -= 1;
+                }
             }
-        }
-        if self.is_empty() {
-            self.position = None;
         }
         result
     }
@@ -61,56 +48,51 @@ impl<T: Clone> Circular<T> {
     pub fn iter_mut(&mut self) -> std::slice::IterMut<T> {
         self.vec.iter_mut()
     }
-    pub fn get_position(&self) -> Option<usize> {
-        self.position
+    pub fn get_position(&self, pos_id: PositionID) -> &Option<usize> {
+        &self.positions[pos_id.0]
     }
-    pub fn set_position(&mut self, pos: Option<usize>) {
-        self.position = pos;
+    pub fn get_position_mut(&mut self, pos_id: PositionID) -> &mut Option<usize> {
+        &mut self.positions[pos_id.0]
     }
-    pub fn get_current(&self) -> Option<&T> {
-        self.position.map(|pos| &self.vec[pos])
+    pub fn set_position(&mut self, pos_id: PositionID, index: Option<usize>) {
+        self.positions[pos_id.0] = index;
     }
-    pub fn get_current_mut(&mut self) -> Option<&mut T> {
-        self.position.map(|pos| &mut self.vec[pos])
+    pub fn get_by_pos_id(&self, pos_id: PositionID) -> Option<&T> {
+        self.positions[pos_id.0].map(|pos| &self.vec[pos])
     }
-    /// If current is `None` tries to set it to `Some`.
-    pub fn force_get_current(&mut self) -> Option<&T> {
-        if let Some(pos) = self.position {
-            Some(&self.vec[pos])
-        } else {
-            self.init_position().map(|r| &*r)
-        }
+    pub fn get_by_pos_id_mut(&mut self, pos_id: PositionID) -> Option<&mut T> {
+        self.positions[pos_id.0].map(|pos| &mut self.vec[pos])
     }
     /// If current is `None` tries to set it to `Some`.
-    pub fn force_get_current_mut(&mut self) -> Option<&mut T> {
-        if let Some(pos) = self.position {
+    pub fn force_get_by_pos_id_mut(&mut self, pos_id: PositionID) -> Option<&mut T> {
+        if let Some(pos) = self.positions[pos_id.0] {
             Some(&mut self.vec[pos])
         } else {
-            self.init_position()
+            self.init_position(pos_id)
         }
     }
     pub fn clear(&mut self) {
         self.vec.clear();
-        self.position = None;
+        self.positions.clear();
     }
 
-    pub async fn next(&mut self) -> Option<&T> {
-        if let Some(ref mut pos) = self.position {
+    pub async fn next(&mut self, pos_id: PositionID) -> Option<&T> {
+        if let Some(ref mut pos) = self.positions[pos_id.0] {
             *pos += 1;
             if *pos == self.vec.len() {
                 *pos = 0;
             }
             Some(&self.vec[pos.clone()])
         } else {
-            self.init_position().map(|r| &*r)
+            self.init_position(pos_id).map(|r| &*r)
         }
     }
-    fn init_position(&mut self) -> Option<&mut T> {
+    fn init_position(&mut self, pos_id: PositionID) -> Option<&mut T> {
         if self.vec.is_empty() {
-            self.position = None;
+            self.positions[pos_id.0] = None;
             None
         } else {
-            self.position = Some(0);
+            self.positions[pos_id.0] = Some(0);
             Some(&mut self.vec[0])
         }
     }
