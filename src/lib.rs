@@ -61,26 +61,45 @@ impl<T: Clone> Circular<T> {
     pub fn get_current_mut(&mut self) -> Option<&mut T> {
         self.position.map(|pos| &mut self.vec[pos])
     }
+    /// If current is `None` tries to set it to `Some`.
+    pub fn force_get_current(&mut self) -> Option<&T> {
+        if let Some(pos) = self.position {
+            Some(&self.vec[pos])
+        } else {
+            self.init_position().map(|r| &*r)
+        }
+    }
+    /// If current is `None` tries to set it to `Some`.
+    pub fn force_get_current_mut(&mut self) -> Option<&mut T> {
+        if let Some(pos) = self.position {
+            Some(&mut self.vec[pos])
+        } else {
+            self.init_position()
+        }
+    }
     pub fn clear(&mut self) {
         self.vec.clear();
         self.position = None;
     }
 
-    pub async fn next(&mut self) -> Option<T> {
+    pub async fn next(&mut self) -> Option<&T> {
         if let Some(ref mut pos) = self.position {
             *pos += 1;
             if *pos == self.vec.len() {
                 *pos = 0;
             }
-            Some(self.vec[pos.clone()].clone())
+            Some(&self.vec[pos.clone()])
         } else {
-            if self.vec.is_empty() {
-                self.position = None;
-                None
-            } else {
-                self.position = Some(0);
-                Some(self.vec[0].clone())
-            }
+            self.init_position().map(|r| &*r)
+        }
+    }
+    fn init_position(&mut self) -> Option<&mut T> {
+        if self.vec.is_empty() {
+            self.position = None;
+            None
+        } else {
+            self.position = Some(0);
+            Some(&mut self.vec[0])
         }
     }
 }
