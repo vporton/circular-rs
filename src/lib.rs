@@ -40,6 +40,9 @@ impl<T> Circular<T> {
         }
         result
     }
+    pub fn remove_by_pos_id(&mut self, pos_id: PositionID) -> T {
+        self.remove(self.positions[pos_id])
+    }
 
     pub fn is_empty(&self) -> bool {
         self.vec.is_empty()
