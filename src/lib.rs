@@ -40,8 +40,12 @@ impl<T> Circular<T> {
         }
         result
     }
-    pub fn remove_by_pos_id(&mut self, pos_id: PositionID) -> T {
-        self.remove(self.positions[pos_id])
+    pub fn remove_by_pos_id(&mut self, pos_id: PositionID) -> Option<T> {
+        if let Some(pos) = self.positions[pos_id.0] {
+            Some(self.remove(pos))
+        } else {
+            None
+        }
     }
 
     pub fn is_empty(&self) -> bool {
