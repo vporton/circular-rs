@@ -14,6 +14,12 @@ pub struct PositionID(pub usize);
 ///
 /// TODO: More tests.
 impl<T> Circular<T> {
+    pub fn new() -> Self {
+        Self {
+            vec: Vec::new(),
+            positions: Vec::new(),
+        }
+    }
     pub fn push(&mut self, value: T) {
         self.vec.push(value)
     }
