@@ -68,8 +68,8 @@ impl<T> Circular<T> {
     pub fn iter_mut(&mut self) -> std::slice::IterMut<T> {
         self.vec.iter_mut()
     }
-    pub fn push_position(&mut self) -> usize {
-        let result = self.positions.len();
+    pub fn push_position(&mut self) -> PositionID {
+        let result = PositionID(self.positions.len());
         self.positions.push(None);
         result
     }
