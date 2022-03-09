@@ -35,6 +35,18 @@ impl<T: Clone> Circular<T> {
             self.vec.get(0).map(|v| v.clone())
         }
     }
+    pub fn remove(&mut self, index: usize) -> Option<T> {
+        let result = self.vec.remove(index);
+        if let Some(ref mut pos) = self.position {
+            if *pos > index {
+                *pos -= 1;
+            }
+        }
+        if self.is_empty() {
+            self.position = None;
+        }
+        result
+    }
 
     pub fn is_empty(&self) -> bool {
         self.vec.is_empty()
