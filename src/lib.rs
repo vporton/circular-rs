@@ -35,7 +35,7 @@ impl<T: Clone> Circular<T> {
             self.vec.get(0).map(|v| v.clone())
         }
     }
-    pub fn remove(&mut self, index: usize) -> Option<T> {
+    pub fn remove(&mut self, index: usize) -> T {
         let result = self.vec.remove(index);
         if let Some(ref mut pos) = self.position {
             if *pos > index {
