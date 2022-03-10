@@ -20,6 +20,9 @@ impl<T> Circular<T> {
             positions: Vec::new(),
         }
     }
+    pub fn vec(&self) -> &Vec<T> {
+        &self.vec
+    }
     pub fn push(&mut self, value: T) {
         self.vec.push(value)
     }
