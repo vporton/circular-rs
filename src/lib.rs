@@ -20,6 +20,11 @@ impl<T> Circular<T> {
             positions: Vec::new(),
         }
     }
+    fn my_assert(&self) {
+        for p in &self.positions {
+            debug_assert!(p.is_none() || p.unwrap() < self.len())
+        }
+    }
     pub fn vec(&self) -> &Vec<T> {
         &self.vec
     }
@@ -27,7 +32,8 @@ impl<T> Circular<T> {
         self.vec.push(value)
     }
     pub fn append(&mut self, other: &mut Vec<T>) {
-        self.vec.append(other)
+        self.vec.append(other);
+        self.my_assert();
     }
     pub fn remove_unsafe(&mut self, index: usize) -> T {
         let result = self.vec.remove(index);
@@ -41,12 +47,15 @@ impl<T> Circular<T> {
                 }
             }
         }
+        self.my_assert();
         result
     }
     pub fn remove_by_pos_id(&mut self, pos_id: PositionID) -> Option<T> {
         if let Some(pos) = self.positions[pos_id.0] {
+            self.my_assert();
             Some(self.remove_unsafe(pos))
         } else {
+            self.my_assert();
             None
         }
     }
@@ -74,10 +83,12 @@ impl<T> Circular<T> {
     pub fn push_position(&mut self) -> PositionID {
         let result = PositionID(self.positions.len());
         self.positions.push(None);
+        self.my_assert();
         result
     }
     pub fn pop_position(&mut self) {
         self.positions.pop();
+        self.my_assert();
     }
     pub fn get_position(&self, pos_id: PositionID) -> &Option<usize> {
         &self.positions[pos_id.0]
@@ -87,6 +98,7 @@ impl<T> Circular<T> {
     }
     pub fn set_position_unsafe(&mut self, pos_id: PositionID, index: Option<usize>) {
         self.positions[pos_id.0] = index;
+        self.my_assert();
     }
     pub fn get_by_pos_id(&self, pos_id: PositionID) -> Option<&T> {
         self.positions[pos_id.0].map(|pos| &self.vec[pos])
@@ -97,6 +109,7 @@ impl<T> Circular<T> {
     /// If current is `None` tries to set it to `Some`.
     pub fn force_get_by_pos_id_mut(&mut self, pos_id: PositionID) -> Option<&mut T> {
         if let Some(pos) = self.positions[pos_id.0] {
+            self.my_assert();
             Some(&mut self.vec[pos])
         } else {
             self.init_position(pos_id)
@@ -107,6 +120,7 @@ impl<T> Circular<T> {
         for p in self.positions.iter_mut() {
             *p = None;
         }
+        self.my_assert();
     }
 
     pub async fn next(&mut self, pos_id: PositionID) -> Option<&T> {
@@ -115,6 +129,7 @@ impl<T> Circular<T> {
             if *pos == self.vec.len() {
                 *pos = 0;
             }
+            debug_assert!(*pos < self.vec.len());
             Some(&self.vec[pos.clone()])
         } else {
             self.init_position(pos_id).map(|r| &*r)
@@ -123,9 +138,11 @@ impl<T> Circular<T> {
     fn init_position(&mut self, pos_id: PositionID) -> Option<&mut T> {
         if self.vec.is_empty() {
             self.positions[pos_id.0] = None;
+            self.my_assert();
             None
         } else {
             self.positions[pos_id.0] = Some(0);
+            self.my_assert();
             Some(&mut self.vec[0])
         }
     }
