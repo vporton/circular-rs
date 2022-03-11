@@ -36,6 +36,8 @@ impl<T> Circular<T> {
         self.my_assert();
     }
     pub fn remove_unsafe(&mut self, index: usize) -> T {
+        assert!(index < self.len());
+        self.my_assert();
         let result = self.vec.remove(index);
         let empty = self.is_empty();
         for position in self.positions.iter_mut() {
