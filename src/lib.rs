@@ -104,7 +104,9 @@ impl<T> Circular<T> {
     }
     pub fn clear(&mut self) {
         self.vec.clear();
-        self.positions.clear();
+        for p in self.positions.iter_mut() {
+            *p = None;
+        }
     }
 
     pub async fn next(&mut self, pos_id: PositionID) -> Option<&T> {
