@@ -7,6 +7,10 @@ use std::collections::HashMap;
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PositionID(u64);
 
+impl PositionID {
+    pub const ZERO: PositionID = PositionID(0);
+}
+
 pub struct Circular<T> {
     vec: Vec<T>,
     positions: HashMap<PositionID, Option<usize>>,
