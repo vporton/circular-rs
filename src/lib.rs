@@ -137,7 +137,7 @@ impl<T> Circular<T> {
     pub fn next(&mut self, pos_id: PositionID) -> Option<&T> {
         let pos = self.positions[&pos_id];
         if let Some(pos) = pos {
-            self.positions.insert(pos_id, Some(if pos == self.vec.len() {
+            self.positions.insert(pos_id, Some(if pos + 1 == self.vec.len() {
                 0
             } else {
                 pos + 1

@@ -1,6 +1,6 @@
 [package]
 name = "circular-resources"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2021"
 description = "A `Vec` together with a position that moves circularly"
 authors = ["Victor Porton"]
