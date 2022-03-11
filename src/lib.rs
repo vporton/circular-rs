@@ -82,7 +82,7 @@ impl<T> Circular<T> {
     pub fn get_position(&self, pos_id: PositionID) -> &Option<usize> {
         &self.positions[pos_id.0]
     }
-    pub fn get_position_mut(&mut self, pos_id: PositionID) -> &mut Option<usize> {
+    pub fn get_position_mut_unsafe(&mut self, pos_id: PositionID) -> &mut Option<usize> {
         &mut self.positions[pos_id.0]
     }
     pub fn set_position_unsafe(&mut self, pos_id: PositionID, index: Option<usize>) {
