@@ -39,7 +39,7 @@ impl<T> Circular<T> {
         assert!(index < self.len());
         self.my_assert();
         let result = self.vec.remove(index);
-        let old_len = self.len();
+        let new_len = self.len();
         let empty = self.is_empty();
         for position in self.positions.iter_mut() {
             if empty {
@@ -47,7 +47,7 @@ impl<T> Circular<T> {
             } else if let Some(ref mut pos) = *position {
                 if *pos > index {
                     *pos -= 1;
-                } else if *pos == old_len - 1 {
+                } else if *pos == new_len {
                     *pos = 0;
                 }
             }
