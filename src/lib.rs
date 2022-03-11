@@ -134,7 +134,7 @@ impl<T> Circular<T> {
         self.my_assert();
     }
 
-    pub async fn next(&mut self, pos_id: PositionID) -> Option<&T> {
+    pub fn next(&mut self, pos_id: PositionID) -> Option<&T> {
         let pos = self.positions[&pos_id];
         if let Some(pos) = pos {
             self.positions.insert(pos_id, Some(if pos == self.vec.len() {
