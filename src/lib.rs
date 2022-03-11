@@ -29,7 +29,7 @@ impl<T> Circular<T> {
     pub fn append(&mut self, other: &mut Vec<T>) {
         self.vec.append(other)
     }
-    pub fn remove(&mut self, index: usize) -> T {
+    pub fn remove_unsafe(&mut self, index: usize) -> T {
         let result = self.vec.remove(index);
         let empty = self.is_empty();
         for position in self.positions.iter_mut() {
@@ -45,7 +45,7 @@ impl<T> Circular<T> {
     }
     pub fn remove_by_pos_id(&mut self, pos_id: PositionID) -> Option<T> {
         if let Some(pos) = self.positions[pos_id.0] {
-            Some(self.remove(pos))
+            Some(self.remove_unsafe(pos))
         } else {
             None
         }
@@ -85,7 +85,7 @@ impl<T> Circular<T> {
     pub fn get_position_mut(&mut self, pos_id: PositionID) -> &mut Option<usize> {
         &mut self.positions[pos_id.0]
     }
-    pub fn set_position(&mut self, pos_id: PositionID, index: Option<usize>) {
+    pub fn set_position_unsafe(&mut self, pos_id: PositionID, index: Option<usize>) {
         self.positions[pos_id.0] = index;
     }
     pub fn get_by_pos_id(&self, pos_id: PositionID) -> Option<&T> {
@@ -141,7 +141,7 @@ mod tests {
         let mut v = Circular::new();
         let mut input = (0..10).collect::<Vec<i32>>();
         v.append(&mut input);
-        v.set_position(Some(5));
+        v.set_position_unsafe(Some(5));
         v.remove_current();
         assert_eq!(v.iter().map(|n| *n).collect::<Vec<i32>>(), vec![0, 1, 2, 3, 4, 6, 7, 8, 9]);
         assert_eq!(v.get_position(), Some(5));
